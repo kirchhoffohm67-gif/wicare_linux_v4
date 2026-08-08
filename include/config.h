@@ -10,14 +10,23 @@
 static const uint8_t FRAME_HDR[4] = {0xAA, 0xFF, 0x03, 0x00};
 static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 
-// ---- Lógica de inmovilidad ----
-#define MAX_OBJETIVOS 3
-#define UMBRAL_VELOCIDAD_QUIETO 5     // cm/s
-#define TIEMPO_ESPERA_ALERTA_MS 3000  // ms inmóvil antes de alertar
-#define COOLDOWN_ALERTA_MS 10000      // ms antes de poder re-alertar el mismo objetivo
-
 // ---- Salud del sistema ----
-#define RADAR_TIMEOUT_MS 2000  // si no llega ningún frame válido en este tiempo -> radar "caído"
+#define RADAR_TIMEOUT_MS 2000
+#define MAX_OBJETIVOS 3
+
+// ---- Debounce de presencia (filtra fantasmas y parpadeo entre 1-2 personas) ----
+#define PRESENCE_CONFIRM_FRAMES 3   // frames seguidos para confirmar que SI hay alguien
+#define PRESENCE_LOST_FRAMES 5      // frames seguidos para confirmar que YA NO hay nadie
+
+// ---- Filtro de suavizado (EMA) ----
+#define FILTRO_ALPHA 0.3f  // 0 = muy suave/lento, 1 = sin filtro
+
+// ---- Inmovilidad / caidas ----
+#define UMBRAL_VELOCIDAD_QUIETO 5        // cm/s, tolerancia de "quieto"
+#define VELOCIDAD_MOVIMIENTO_BRUSCO 30   // cm/s, se considera movimiento fuerte
+#define VENTANA_CAIDA_MS 1500            // ms entre movimiento brusco y parada para sospechar caida
+#define TIEMPO_ESPERA_ALERTA_MS 3000     // ms quieto tras movimiento brusco -> ALERTA CAIDA
+#define TIEMPO_INACTIVIDAD_LARGA_MS 60000 // ms quieto SIN movimiento brusco previo -> aviso de inactividad
 
 // ---- Debug ----
 #define INTERVALO_IMPRESION_MS 300
