@@ -27,6 +27,14 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 #define VENTANA_CAIDA_MS 1500            // ms entre movimiento brusco y parada para sospechar caida
 #define TIEMPO_ESPERA_ALERTA_MS 3000     // ms quieto tras movimiento brusco -> ALERTA CAIDA
 #define TIEMPO_INACTIVIDAD_LARGA_MS 60000 // ms quieto SIN movimiento brusco previo -> aviso de inactividad
+#define DESPLAZAMIENTO_CANCELA_QUIETO_MM 150
+#define FRAMES_RECUPERACION_TRAS_CAIDA 5
+#define VELOCIDAD_RECUPERACION_CM_S 15
 
 // ---- Debug ----
 #define INTERVALO_IMPRESION_MS 300
+
+#define FRAMES_BRUSCO_CONFIRMAR 2    // frames RAW consecutivos con velocidad alta para confirmar (no un solo frame de ruido)
+#define COOLDOWN_ALERTA_MS 10000     // ms de espera minima antes de poder disparar OTRA alerta de caida tras la anterior
+
+#define TIEMPO_MINIMO_ANTES_RECUPERACION_MS 800
