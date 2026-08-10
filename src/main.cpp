@@ -8,7 +8,7 @@ RadarLD2450 radar;
 unsigned long ultimaImpresion = 0;
 bool radarEstabaActivo = true;
 
-#define SALTO_MAXIMO_MM 400
+#define SALTO_MAXIMO_MM 600
 #define FRAMES_PARA_CANCELAR_QUIETO 3
 
 struct EstadoObjetivo {
@@ -36,6 +36,7 @@ struct EstadoObjetivo {
   bool enConfirmacionCaida = false;
   unsigned long inicioConfirmacionCaida = 0;
   uint8_t framesRecuperacion = 0;
+  float xInicioConfirmacion = 0, yInicioConfirmacion = 0;
 };
 
 EstadoObjetivo estado[MAX_OBJETIVOS];
@@ -102,9 +103,12 @@ void manejarPresencia(EstadoObjetivo &e, bool rawPresente) {
   }
 }
 
-void manejarInmovilidadYCaida(int i, EstadoObjetivo &e, const Objetivo &obj, bool imprimir) {
+void manejarInmovilidadYCaida(int i, EstadoObjetivo &e, const Objetivo &obj, bool imprimir, bool frameValido) {
   // --- 1. Deteccion de burst (movimiento brusco) ---
-  bool esteFrameBrusco = fabs(obj.velocidad) >= VELOCIDAD_MOVIMIENTO_BRUSCO;
+  // Solo cuenta si la POSICION de este frame tambien es confiable (no glitch).
+  // Un pico de velocidad con posicion congelada/imposible es ruido/interferencia,
+  // no un movimiento real (ventilador, gente cruzando el campo del radar, etc).
+  bool esteFrameBrusco = frameValido && (fabs(obj.velocidad) >= VELOCIDAD_MOVIMIENTO_BRUSCO);
   e.framesBrusco = esteFrameBrusco ? (e.framesBrusco + 1) : 0;
 
   bool nuevoBurstConfirmado = false;
@@ -125,35 +129,43 @@ void manejarInmovilidadYCaida(int i, EstadoObjetivo &e, const Objetivo &obj, boo
     e.enConfirmacionCaida = true;
     e.inicioConfirmacionCaida = millis();
     e.framesRecuperacion = 0;
+    e.xInicioConfirmacion = e.xFiltrado;   // <- nuevo
+    e.yInicioConfirmacion = e.yFiltrado;   // <- nuevo
     Serial.printf("[INFO] Obj %d - iniciando confirmacion de posible caida (%.0fs de ventana)...\n",
                   i + 1, TIEMPO_ESPERA_ALERTA_MS / 1000.0);
   }
 
   // --- 2. Maquina de confirmacion de caida (tolerante a micro-ajustes) ---
-  if (e.enConfirmacionCaida) {
+if (e.enConfirmacionCaida) {
   unsigned long tiempoEnConfirmacion = millis() - e.inicioConfirmacionCaida;
 
-  // Solo cuenta como "recuperacion" (persona se movio/levanto) si ocurre
-  // DESPUES del margen minimo - los primeros ms son la caida misma asentandose.
   bool dentroDeMargenDeCaida = tiempoEnConfirmacion < TIEMPO_MINIMO_ANTES_RECUPERACION_MS;
   bool movimientoDeRecuperacion = !dentroDeMargenDeCaida && (fabs(obj.velocidad) >= VELOCIDAD_RECUPERACION_CM_S);
   e.framesRecuperacion = movimientoDeRecuperacion ? (e.framesRecuperacion + 1) : 0;
 
-    Serial.printf("   [debug-caida] Obj %d confirmando=%.1fs framesRecuperacion=%d vRaw=%d\n",
-                  i + 1, tiempoEnConfirmacion / 1000.0, e.framesRecuperacion, obj.velocidad);
+  // Chequeo por DESPLAZAMIENTO acumulado - mas confiable que velocidad frame-a-frame,
+  // que es ruidosa por naturaleza (pasos, oscilacion al caminar).
+  float desplazamientoConfirmacion = sqrtf(powf(e.xFiltrado - e.xInicioConfirmacion, 2) +
+                                            powf(e.yFiltrado - e.yInicioConfirmacion, 2));
+  bool seMovioLoSuficiente = !dentroDeMargenDeCaida &&
+                             (desplazamientoConfirmacion > DESPLAZAMIENTO_CANCELA_CONFIRMACION_MM);
 
-    if (e.framesRecuperacion >= FRAMES_RECUPERACION_TRAS_CAIDA) {
-      Serial.printf("[INFO] Obj %d se movio/recupero tras el burst - caida descartada.\n", i + 1);
-      e.enConfirmacionCaida = false;
-    } else if (tiempoEnConfirmacion >= TIEMPO_ESPERA_ALERTA_MS) {
-      Serial.printf(">>> ALERTA CAIDA: Obj %d - inmovil %.1fs. Frame que disparo: X=%d Y=%d V=%d cm/s. Posicion actual: X=%.0f Y=%.0f. <<<\n",
-                    i + 1, tiempoEnConfirmacion / 1000.0,
-                    e.xUltimoBurst, e.yUltimoBurst, e.velocidadUltimoBurst,
-                    e.xFiltrado, e.yFiltrado);
-      e.enConfirmacionCaida = false;
-      e.ultimaAlertaCaida = millis();
-    }
+  Serial.printf("   [debug-caida] Obj %d confirmando=%.1fs framesRecuperacion=%d vRaw=%d desplaz=%.0fmm\n",
+                i + 1, tiempoEnConfirmacion / 1000.0, e.framesRecuperacion, obj.velocidad, desplazamientoConfirmacion);
+
+  if (e.framesRecuperacion >= FRAMES_RECUPERACION_TRAS_CAIDA || seMovioLoSuficiente) {
+    Serial.printf("[INFO] Obj %d se movio/recupero tras el burst (desplazamiento=%.0fmm) - caida descartada.\n",
+                  i + 1, desplazamientoConfirmacion);
+    e.enConfirmacionCaida = false;
+  } else if (tiempoEnConfirmacion >= TIEMPO_ESPERA_ALERTA_MS) {
+    Serial.printf(">>> ALERTA CAIDA: Obj %d - inmovil %.1fs. Frame que disparo: X=%d Y=%d V=%d cm/s. Posicion actual: X=%.0f Y=%.0f. <<<\n",
+                  i + 1, tiempoEnConfirmacion / 1000.0,
+                  e.xUltimoBurst, e.yUltimoBurst, e.velocidadUltimoBurst,
+                  e.xFiltrado, e.yFiltrado);
+    e.enConfirmacionCaida = false;
+    e.ultimaAlertaCaida = millis();
   }
+}
 
   // --- 3. Inactividad general (independiente de la confirmacion de caida) ---
   bool porEncimaUmbral = fabs(e.vFiltrado) > UMBRAL_VELOCIDAD_QUIETO;
@@ -222,8 +234,11 @@ void loop() {
     if (!e.presenciaConfirmada) continue;
 
     if (obj.presente) {
+      // Evalua ANTES de actualizar el filtro, para saber si este frame es confiable.
+      bool frameValido = !esSaltoImposible(e, obj);
+
       actualizarFiltro(e, obj);
-      manejarInmovilidadYCaida(i, e, obj, imprimir);
+      manejarInmovilidadYCaida(i, e, obj, imprimir, frameValido);
 
       if (imprimir) {
         Serial.printf("Obj %d -> X=%-6.0f mm Y=%-6.0f mm V=%-6.1f cm/s\n",
