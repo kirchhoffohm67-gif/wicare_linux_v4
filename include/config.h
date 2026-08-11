@@ -15,7 +15,7 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 #define MAX_OBJETIVOS 3
 
 // ---- Debounce de presencia (filtra fantasmas y parpadeo entre 1-2 personas) ----
-#define PRESENCE_CONFIRM_FRAMES 3   // frames seguidos para confirmar que SI hay alguien
+#define PRESENCE_CONFIRM_FRAMES 5   // frames seguidos para confirmar que SI hay alguien
 #define PRESENCE_LOST_FRAMES 5      // frames seguidos para confirmar que YA NO hay nadie
 
 // ---- Filtro de suavizado (EMA) ----
@@ -25,7 +25,7 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 #define UMBRAL_VELOCIDAD_QUIETO 5        // cm/s, tolerancia de "quieto"
 #define VELOCIDAD_MOVIMIENTO_BRUSCO 30   // cm/s, se considera movimiento fuerte
 #define VENTANA_CAIDA_MS 1500            // ms entre movimiento brusco y parada para sospechar caida
-#define TIEMPO_ESPERA_ALERTA_MS 3000     // ms quieto tras movimiento brusco -> ALERTA CAIDA
+#define TIEMPO_ESPERA_ALERTA_MS 4000     // ms quieto tras movimiento brusco -> ALERTA CAIDA
 #define TIEMPO_INACTIVIDAD_LARGA_MS 60000 // ms quieto SIN movimiento brusco previo -> aviso de inactividad
 #define DESPLAZAMIENTO_CANCELA_QUIETO_MM 150
 #define FRAMES_RECUPERACION_TRAS_CAIDA 3
@@ -34,8 +34,14 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 // ---- Debug ----
 #define INTERVALO_IMPRESION_MS 300
 
-#define FRAMES_BRUSCO_CONFIRMAR 2    // frames RAW consecutivos con velocidad alta para confirmar (no un solo frame de ruido)
+#define FRAMES_BRUSCO_CONFIRMAR 3   // frames RAW consecutivos con velocidad alta para confirmar (no un solo frame de ruido)
 #define COOLDOWN_ALERTA_MS 10000     // ms de espera minima antes de poder disparar OTRA alerta de caida tras la anterior
 
-#define TIEMPO_MINIMO_ANTES_RECUPERACION_MS 800
-#define DESPLAZAMIENTO_CANCELA_CONFIRMACION_MM 150
+#define TIEMPO_MINIMO_ANTES_RECUPERACION_MS 1000
+#define DESPLAZAMIENTO_CANCELA_CONFIRMACION_MM 100
+#define ENERGIA_RECUPERACION_UMBRAL 80.0f
+
+#define VELOCIDAD_BURST_INSTANTANEO 90   // cm/s - un solo frame a esta velocidad confirma burst de inmediato
+
+#define VENTANA_REIDENTIFICACION_MS 800
+#define DISTANCIA_REIDENTIFICACION_MM 500
