@@ -45,3 +45,16 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 
 #define VENTANA_REIDENTIFICACION_MS 800
 #define DISTANCIA_REIDENTIFICACION_MM 500
+
+#define VELOCIDAD_MAXIMA_HUMANA_CM_S 200   // por encima de esto, se descarta como no-humano (ventilador, glitch)
+#define MATCH_MAX_DIST_MM 450   // que tan lejos puede "saltar" una identidad entre frames y seguir siendo la misma persona
+#define MATCH_MAX_DIST_DURANTE_CAIDA_MM 200
+
+#define VENTANA_ESPERA_DESACELERACION_MS 1000
+#define DESACELERACION_UMBRAL_CM_S 30
+
+#define MIN_DT_CALCULO_MS 50
+#define DESPLAZAMIENTO_SOLO_ALTO_MM 350
+
+#define TIEMPO_MAXIMO_SIN_DETECCION_MS 10000
+#define VENTANA_ESPERA_DESACELERACION_MS 1300
