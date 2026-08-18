@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 
-class WhatsAppNotifier {
+class NtfyNotifier {
 public:
   void begin();
   void enviarAlerta(const String &mensaje);
@@ -9,5 +9,4 @@ public:
 
 private:
   unsigned long ultimoIntentoWifi = 0;
-  String urlEncode(const String &texto);
 };
