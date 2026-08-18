@@ -58,3 +58,10 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 
 #define TIEMPO_MAXIMO_SIN_DETECCION_MS 10000
 #define VENTANA_ESPERA_DESACELERACION_MS 1300
+
+// ---- WiFi y notificaciones WhatsApp (CallMeBot) ----
+#define WIFI_SSID "Electro"
+#define WIFI_PASSWORD "Elec2023"
+#define WHATSAPP_TELEFONO "50661105816"   // con codigo de pais, sin + ni espacios
+#define WHATSAPP_APIKEY "7953694"  // la que te dio CallMeBot
+#define WIFI_RECONEXION_INTERVALO_MS 10000
