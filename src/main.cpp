@@ -251,11 +251,12 @@ void manejarPresencia(EstadoObjetivo &e, bool rawPresente, const Objetivo &obj) 
 void manejarInmovilidadYCaida(int i, EstadoObjetivo &e, const Objetivo &obj, bool imprimir, bool frameValido) {
   float velocidadEfectiva = fmaxf(fabs(obj.velocidad), e.velocidadCalculada);
 
-  bool esteFrameBrusco = frameValido && (velocidadEfectiva >= VELOCIDAD_MOVIMIENTO_BRUSCO);
+  bool esteFrameBrusco = frameValido && (velocidadEfectiva >= VELOCIDAD_MOVIMIENTO_BRUSCO) &&
+                         (fabs(obj.velocidad) >= VELOCIDAD_DOPPLER_MINIMA_RESPALDO);
   e.framesBrusco = esteFrameBrusco ? (e.framesBrusco + 1) : 0;
 
   bool burstPorFramesConsecutivos = e.framesBrusco >= FRAMES_BRUSCO_CONFIRMAR;
-  bool burstInstantaneo = frameValido && (velocidadEfectiva >= VELOCIDAD_BURST_INSTANTANEO);
+  bool burstInstantaneo = frameValido && (fabs(obj.velocidad) >= VELOCIDAD_BURST_INSTANTANEO);
 
   bool nuevoBurstConfirmado = false;
   if (burstPorFramesConsecutivos || burstInstantaneo) {
@@ -280,7 +281,10 @@ void manejarInmovilidadYCaida(int i, EstadoObjetivo &e, const Objetivo &obj, boo
   }
 
   if (e.esperandoDesaceleracion) {
-    bool desacelero = frameValido && velocidadEfectiva <= DESACELERACION_UMBRAL_CM_S;
+    // Solo Doppler decide si ya "se detuvo" el impacto - vCalc tiene inercia
+    // de su ventana de calculo y queda inflado varios frames despues de un
+    // impacto real, haciendo que la caida parezca "seguir en movimiento".
+    bool desacelero = frameValido && fabs(obj.velocidad) <= DESACELERACION_UMBRAL_CM_S;
     e.framesDesaceleracionSeguidos = desacelero ? (e.framesDesaceleracionSeguidos + 1) : 0;
     unsigned long tEspera = millis() - e.inicioEsperaDesaceleracion;
 
@@ -389,7 +393,7 @@ void manejarInmovilidadYCaida(int i, EstadoObjetivo &e, const Objetivo &obj, boo
 void setup() {
   Serial.begin(115200);
   delay(1500);
-  Serial.println("\n# Wi-Care: Deteccion de caidas (v6.1 - desaceleracion sostenida + umbral velocidad ajustado)...");
+  Serial.println("\n# Wi-Care: Deteccion de caidas (v6.3 - desaceleracion solo por Doppler)...");
   radar.begin(RadarSerial);
   notificador.begin();
 
