@@ -142,7 +142,7 @@ void verificarRegistrosPerdidosVencidos() {
                       "de posible caida y no volvio a detectarse. Ultima pos conocida: X=%.0f Y=%.0f. "
                       "Ultimo burst: X=%d Y=%d V=%d cm/s. <<<\n",
                       r.x, r.y, r.xUltimoBurst, r.yUltimoBurst, r.velocidadUltimoBurst);
-        notificador.enviarAlerta("El sensor perdio a la persona durante una posible caida. Requiere revision urgente.");
+        notificador.enviarAlerta("El sensor perdio a la persona durante una posible caida. Se recomienda revision.");
       }
       r.activo = false;
     }
