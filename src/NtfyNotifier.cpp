@@ -40,12 +40,12 @@ void NtfyNotifier::enviarAlerta(const String &mensaje) {
   String url = "https://ntfy.sh/" + String(NTFY_TOPIC);
 
   HTTPClient http;
-  http.begin(url);
-  http.addHeader("Title", "Wi-Care - Alerta de Caida");
-  http.addHeader("Priority", "urgent");
-  http.addHeader("Tags", "rotating_light");
+ http.begin(url);
+ http.addHeader("Title", "Wi-Care - Alerta de Caida");
+ http.addHeader("Priority", "urgent");
+ http.addHeader("Tags", "rotating_light");
 
-  int codigoRespuesta = http.POST(mensaje);
+ int codigoRespuesta = http.POST(mensaje); 
 
   if (codigoRespuesta > 0) {
     Serial.printf("[NTFY] Enviado. Codigo de respuesta: %d\n", codigoRespuesta);

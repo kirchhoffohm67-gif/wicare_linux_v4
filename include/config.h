@@ -70,3 +70,6 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 
 #define FRAMES_DESACELERACION_CONFIRMAR 3
 #define VELOCIDAD_DOPPLER_MINIMA_RESPALDO 20
+
+// firebase 
+#define FIREBASE_HOST "wicare-web-default-rtdb.firebaseio.com"
