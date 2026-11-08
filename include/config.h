@@ -60,8 +60,8 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 
 // ---- WiFi y notificaciones (ntfy.sh) ----
 // IMPORTANTE: cambiar SSID/PASSWORD a la red del colegio/lugar de competencia antes de salir de casa
-#define WIFI_SSID "iPhone"
-#define WIFI_PASSWORD "12345678"
+#define WIFI_SSID "Sanchez Freitez 2.4"
+#define WIFI_PASSWORD "Vf17627580"
 #define NTFY_TOPIC "Wicare-linux-V4-"
 #define WIFI_RECONEXION_INTERVALO_MS 10000
 
@@ -71,5 +71,3 @@ static const uint8_t FRAME_TAIL[2] = {0x55, 0xCC};
 #define FRAMES_DESACELERACION_CONFIRMAR 3
 #define VELOCIDAD_DOPPLER_MINIMA_RESPALDO 20
 
-// firebase 
-#define FIREBASE_HOST "wicare-web-default-rtdb.firebaseio.com"

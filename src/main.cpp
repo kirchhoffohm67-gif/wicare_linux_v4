@@ -2,13 +2,11 @@
 #include "config.h"
 #include "RadarLD2450.h"
 #include "NtfyNotifier.h"
-#include "FirebaseSync.h"
 #include "esp_task_wdt.h"
 
 HardwareSerial RadarSerial(1);
 RadarLD2450 radar;
 NtfyNotifier notificador;
-FirebaseSync firebase;
 
 unsigned long ultimaImpresion = 0;
 bool radarEstabaActivo = true;
@@ -392,7 +390,7 @@ void manejarInmovilidadYCaida(int i, EstadoObjetivo &e, const Objetivo &obj, boo
 void setup() {
   Serial.begin(115200);
   delay(1500);
-  Serial.println("\n# Wi-Care: Deteccion de caidas (v6.4 - con sincronizacion Firebase)...");
+  Serial.println("\n# Wi-Care: Deteccion de caidas (v6.4)...");
   radar.begin(RadarSerial);
   notificador.begin();
 
@@ -487,8 +485,6 @@ void loop() {
         Serial.printf("Obj %d -> X=%-6.0f mm Y=%-6.0f mm V=%-6.1f cm/s\n",
                       i + 1, e.xFiltrado, e.yFiltrado, e.vFiltrado);
 
-        String estadoTexto = e.enConfirmacionCaida ? "confirmando caida" : "monitoreo normal";
-        firebase.enviarEstado(e.xFiltrado, e.yFiltrado, e.enConfirmacionCaida, estadoTexto);
       }
     }
   }
